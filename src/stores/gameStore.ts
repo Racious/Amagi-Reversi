@@ -15,7 +15,7 @@ import {
 import { easyAi, hardAi, normalAi } from '@/domain/reversi.ai'
 import { deserializeBoard, serializeBoard } from '@/domain/reversi.serializer'
 import { gameStorageService } from '@/services/gameStorageService'
-import { statisticsService } from '@/services/statisticsService'
+import { statisticsService, type GameStatistics } from '@/services/statisticsService'
 
 export const useGameStore = defineStore('game', () => {
   const board = ref<Board>(createInitialBoard())
@@ -28,6 +28,7 @@ export const useGameStore = defineStore('game', () => {
   const showHints = ref(true)
   const isAiThinking = ref(false)
   const passCount = ref(0)
+  const statistics = ref<GameStatistics>(statisticsService.load())
 
   // Getters
   const blackCount = computed(() => countPieces(board.value).black)
@@ -57,6 +58,7 @@ export const useGameStore = defineStore('game', () => {
     moveHistory.value = []
     passCount.value = 0
     isAiThinking.value = false
+    gameStorageService.clear()
   }
 
   function placeAt(row: number, col: number) {
@@ -181,9 +183,9 @@ export const useGameStore = defineStore('game', () => {
     status.value = 'finished'
     winner.value = calculateWinner(board.value)
     if (winner.value !== null) {
-      statisticsService.record(winner.value)
+      statistics.value = statisticsService.record(winner.value)
     }
-    saveCurrentGame()
+    gameStorageService.clear()
   }
 
   async function saveCurrentGame(): Promise<void> {
@@ -202,9 +204,13 @@ export const useGameStore = defineStore('game', () => {
     })
   }
 
-  async function loadLastGame(): Promise<void> {
+  async function loadActiveGame(): Promise<void> {
     const saved = gameStorageService.load()
-    if (!saved) return
+    if (!saved || saved.status !== 'playing') {
+      gameStorageService.clear()
+      statistics.value = statisticsService.load()
+      return
+    }
 
     board.value = saved.board
     currentPlayer.value = saved.currentPlayer
@@ -215,6 +221,19 @@ export const useGameStore = defineStore('game', () => {
     moveHistory.value = saved.moveHistory
     passCount.value = saved.passCount
     showHints.value = saved.showHints
+    isAiThinking.value = false
+    statistics.value = statisticsService.load()
+  }
+
+  function resetSessionGame(): void {
+    gameStorageService.clear()
+    startNewGame()
+    statistics.value = statisticsService.load()
+  }
+
+  function resetStatistics(): void {
+    statisticsService.reset()
+    statistics.value = statisticsService.load()
   }
 
   return {
@@ -228,6 +247,7 @@ export const useGameStore = defineStore('game', () => {
     showHints,
     isAiThinking,
     passCount,
+    statistics,
     blackCount,
     whiteCount,
     validMoves,
@@ -242,6 +262,8 @@ export const useGameStore = defineStore('game', () => {
     applyAiMoveIfNeeded,
     finishGame,
     saveCurrentGame,
-    loadLastGame,
+    loadActiveGame,
+    resetSessionGame,
+    resetStatistics,
   }
 })

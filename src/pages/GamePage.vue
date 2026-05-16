@@ -10,7 +10,7 @@ import { useGameStore } from '@/stores/gameStore'
 const game = useGameStore()
 
 onMounted(async () => {
-  await game.loadLastGame()
+  await game.loadActiveGame()
   if (game.status === 'playing') {
     await game.applyAiMoveIfNeeded()
   }

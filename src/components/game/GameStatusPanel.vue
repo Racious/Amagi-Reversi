@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useGameStore } from '@/stores/gameStore'
-import { statisticsService } from '@/services/statisticsService'
 
 const game = useGameStore()
-const stats = computed(() => statisticsService.load())
+
+function resetStatistics() {
+  if (!window.confirm('確定要重置戰績嗎？')) return
+  game.resetStatistics()
+}
 </script>
 
 <template>
@@ -32,11 +34,15 @@ const stats = computed(() => statisticsService.load())
     </div>
 
     <div class="stats-row">
-      <span>總場次 {{ stats.total }}</span>
-      <span>黑 {{ stats.blackWins }}</span>
-      <span>白 {{ stats.whiteWins }}</span>
-      <span>和 {{ stats.draws }}</span>
+      <span>總場次 {{ game.statistics.total }}</span>
+      <span>黑 {{ game.statistics.blackWins }}</span>
+      <span>白 {{ game.statistics.whiteWins }}</span>
+      <span>和 {{ game.statistics.draws }}</span>
     </div>
+
+    <button class="reset-stats-button" type="button" @click="resetStatistics">
+      重置戰績
+    </button>
   </div>
 </template>
 
@@ -131,5 +137,23 @@ const stats = computed(() => statisticsService.load())
   color: var(--text-muted);
   border-top: 1px solid var(--border);
   padding-top: 8px;
+}
+
+.reset-stats-button {
+  align-self: center;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+
+.reset-stats-button:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+  background: rgba(239, 68, 68, 0.08);
 }
 </style>
