@@ -1,5 +1,7 @@
 # Amagi Reversi
 
+[繁體中文](README.md) | [English](README.en.md)
+
 使用 Tauri 2、Vue 3、TypeScript、Pinia、Vite 與 Vitest 製作的本機黑白棋 / Reversi 遊戲。
 
 這個專案優先重視規則正確性：黑白棋核心規則集中在 domain layer，Vue 元件只負責畫面呈現與使用者互動。
